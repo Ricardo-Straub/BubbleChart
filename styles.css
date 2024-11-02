@@ -1,0 +1,23 @@
+/*
+ * D3 Introduction
+ * @author: Marco Schäfer
+ * @author: Nicolas Brich
+ */
+
+ p {
+    font: 12pt sans-serif;
+    margin: 3px;
+    color: black;
+  }
+  
+label {
+    font: 10pt sans-serif;
+    padding: 3px;
+    margin: 3px;
+    color: black;
+  }
+  
+.chart {
+    background-color: #C7D9D9;
+  }
+  
