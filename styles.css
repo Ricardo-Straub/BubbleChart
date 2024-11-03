@@ -18,6 +18,11 @@ label {
   }
   
 .chart {
-    background-color: #C7D9D9;
+    background-color: white;
   }
+
+.tick line {
+    stroke: #C7D9D9;
+
+}
   
