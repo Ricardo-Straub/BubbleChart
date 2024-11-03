@@ -3,7 +3,15 @@
  * D3 Introduction
  * @author: Marco Schäfer
  * @author: Nicolas Brich
+ * 
+ * TODO:
+ * -small bubbles in fornt of big bubbles
+ * -hover effects
+ * -color continents
+ * 
  */
+
+
 function parsePopulation(value) {
     let res;
     if (value.endsWith("M")) {
@@ -30,8 +38,8 @@ d3.csv("gapminder.csv").then(function(dataset) {
     let scaleX = d3.scaleLinear().domain([minVal, maxVal]).range([0, svgWidth]);
     let scaleY = d3.scaleLinear().domain([maxValy, minValy]).range([0, svgHeight]);
     
-    let minPop = d3.max(dataset, d => parsePopulation(d["Population"]));
-    let maxPop = d3.min(dataset, d => parsePopulation(d["Population"]));
+    let minPop = d3.min(dataset, d => parsePopulation(d["Population"]));
+    let maxPop = d3.max(dataset, d => parsePopulation(d["Population"]));
     let scaleBubble = d3.scaleLinear().domain([minPop, maxPop]).range([20, 1000]);
     const margin = {top: 20, right: 30, bottom: 30, left: 100};
     //const features = ["mcg","gvh","aac","alm1","alm2","lip","chg"]; // feature names
@@ -72,6 +80,8 @@ d3.csv("gapminder.csv").then(function(dataset) {
       .domain([minVal, ((maxVal-minVal) / 2.0 + minVal), maxVal])
       .range(["blue", "white", "red"])
       .interpolate(d3.interpolateRgb); */
+
+    d3.sort(dataset, (a, b) => parsePopulation(a["Population"]) - parsePopulation(b["Population"]));
   
     let chart = svg.append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
@@ -83,7 +93,7 @@ d3.csv("gapminder.csv").then(function(dataset) {
       .attr("cy", d => scaleY(d[paramy]))
       .attr("r", d => Math.sqrt(scaleBubble(parsePopulation(d["Population"])) / Math.PI))
       .attr('stroke', 'black')
-      .attr("fill-opacity", 0.75)
+      //.attr("fill-opacity", 0.75)
       .attr('fill', '#69a3b2');
   
     /* d3.selectAll("input").on("change", changeX);
