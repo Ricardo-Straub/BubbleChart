@@ -1,54 +1,40 @@
 
-/*
- * D3 Introduction
- * @author: Marco Schäfer
- * @author: Nicolas Brich
- * 
- * TODO:
- * x small bubbles in fornt of big bubbles
- * - hover effects
- * - color continents
- * - search and select countries
- * 
- */
-
+// Current nr of circles selected / clicked on
 let selCount = 0;
-
-
-
 d3.csv("gapminder.csv").then(function(dataset) {
     const svgWidth = 800;
     const svgHeight = 500;
-    let paramCountry = "country";
     let paramIncome = "Average Daily Income";
     let paramBabies = "Babies per Woman";
-    let minIncome = d3.min(dataset, d => parsePopulation(d[paramIncome]));
-    let maxIncome = d3.max(dataset, d => parsePopulation(d[paramIncome])); // equivalent to the function statement above
     let minBabies = d3.min(dataset, function(d) { return d[paramBabies]; });
-    let maxBabies = d3.max(dataset, d => d[paramBabies] ); // equivalent to the function statement above
+    let maxBabies = d3.max(dataset, d => d[paramBabies] );
     let scaleX = d3.scaleLog().domain([0.25, 128]).range([0, svgWidth]);
     let scaleY = d3.scaleLinear().domain([maxBabies, minBabies]).range([0, svgHeight]);
-    
     let minPop = d3.min(dataset, d => parsePopulation(d["Population"]));
     let maxPop = d3.max(dataset, d => parsePopulation(d["Population"]));
     let scaleBubble = d3.scaleLinear().domain([minPop, maxPop]).range([20, 10000]);
     const margin = {top: 20, right: 30, bottom: 30, left: 100};
+    const colorScale = d3.scaleOrdinal()
+      .domain(["asia", "europe", "africa", "oceania", "americas"]) 
+      .range(["#FF6843", "#33EF55", "#3456FF", "#F433B6", "#F1C40F"]); 
 
+    // Parse Population values into numbers
     function parsePopulation(value) {
         let res;
         if (value.endsWith("B")) {
             res = parseFloat(value) * 1e9;
         } else if (value.endsWith("M")) {
-            res = parseFloat(value) * 1e6; // Convert "M" suffix to millions
+            res = parseFloat(value) * 1e6;
         } else if (value.endsWith("k")) {
-            res = parseFloat(value) * 1e3; // Convert "k" suffix to thousands
+            res = parseFloat(value) * 1e3;
         } else {
-            res = parseFloat(value); // Parse as plain number
+            res = parseFloat(value); 
         }
         //console.log(`Original: ${value}; Result: ${res}`);
         return res;
     }
     
+    // Handle click event of circle 
     function handleClick() {
         if (d3.select(this).attr("fill-opacity") === "1") {
             d3.select(this)
@@ -74,43 +60,56 @@ d3.csv("gapminder.csv").then(function(dataset) {
         }
     }
     
+    // Handle hover event over circle - ignore event param
     function handleHover(event, d) {
-        // Get the current bubble position
-        const cx = scaleX(d[paramIncome]) + margin.left; // X position
-        const cy = scaleY(d[paramBabies]) + margin.top; // Y position
-        const xValue = d[paramIncome]; // X value (income)
-        const yValue = d[paramBabies]; // Y value (babies per woman)
+        // Get position
+        const cx = scaleX(d[paramIncome]) + margin.left; 
+        const cy = scaleY(d[paramBabies]) + margin.top; 
+        // Value of Income - x-Axis
+        const valueX = d[paramIncome];
+        // Value of Babies - y-Axis 
+        const valueY = d[paramBabies];
         
-        // Update the lines to connect to the bubble
+        // Update lines to connect circle to the axis
         lineX.attr("x1", cx)
-        .attr("y1", svgHeight + margin.top) // Start from the bottom of the SVG
-        .attr("x2", cx) // Connect to the bubble's X position
-        .attr("y2", cy) // Connect to the bubble's Y position
-        .style("opacity", 1); // Make the line visible
+        .attr("y1", svgHeight + margin.top)
+        .attr("x2", cx) 
+        .attr("y2", cy) 
+        .style("opacity", 1); 
     
-        lineY.attr("x1", margin.left) // Start from the left of the SVG
-        .attr("y1", cy) // Connect to the bubble's Y position
-        .attr("x2", cx) // Connect to the bubble's X position
-        .attr("y2", cy) // Connect to the bubble's Y position
-        .style("opacity", 1); // Make the line visible
+        lineY.attr("x1", margin.left) 
+        .attr("y1", cy) 
+        .attr("x2", cx) 
+        .attr("y2", cy) 
+        .style("opacity", 1); 
 
-        xAxisLabel.attr("x", cx) // Align with bubble's X position
-        .attr("y", svgHeight + margin.top + 20) // Position below the x-axis
-        .text(xValue)
-        .style("opacity", 1); // Make visible
+        // x-Value of circle
+        xAxisLabel.attr("x", cx)
+        .attr("y", svgHeight + margin.top + 20)
+        .text(valueX)
+        .style("opacity", 1); 
 
-        // Update the y-axis label position and content
+        // y-Value of circle
         yAxisLabel.attr("x", margin.left - 10) // Position near the y-axis
         .attr("y", cy) // Align with bubble's Y position
-        .text(yValue)
+        .text(valueY)
         .style("opacity", 1); // Make visible
+
+        // Country descripion of circle
+        description.attr("x", cx) 
+          .text(`${d.country}: ${parsePopulation(d.Population).toLocaleString()}`)
+          .attr("x", cx)
+          .attr("y", cy - 10) 
+          .style("opacity", 1); 
     }
 
+    // Handle no more hover over circle event
     function handleOut() {
         lineX.style("opacity", 0);
         lineY.style("opacity", 0);
         xAxisLabel.style("opacity", 0);
         yAxisLabel.style("opacity", 0);
+        description.style("opacity", 0);
     }
   
     // SVG container
@@ -138,8 +137,8 @@ d3.csv("gapminder.csv").then(function(dataset) {
     svg.append("text")
       .attr("transform", "translate(" + (svgWidth / 2 + margin.left) + " ," + (svgHeight + margin.top + 20) + ")")
       .style("text-anchor", "middle")
-      .style("font-size", "14px") // Set font size
-      .style("fill", "black") // Set text color
+      .style("font-size", "14px") 
+      .style("fill", "black") 
       .text("Average Daily Income");
   
     // y-Axis label
@@ -148,23 +147,23 @@ d3.csv("gapminder.csv").then(function(dataset) {
       .attr("y", margin.left - 40)
       .attr("x", - (svgHeight / 2 + margin.top))
       .style("text-anchor", "middle")
-      .style("font-size", "14px") // Set font size
-      .style("fill", "black") // Set text color
+      .style("font-size", "14px") 
+      .style("fill", "black") 
       .text("Babies per Woman");
 
     // x-Axis line
     const lineX = svg.append("line")
-      .attr("stroke", "grey") // Set line color
-      .attr("stroke-width", 1) // Set line width
-      .attr("stroke-dasharray", "5,5") // Optional: dashed line style
-      .style("opacity", 0); // Start with opacity 0 (invisible)
+      .attr("stroke", "grey") 
+      .attr("stroke-width", 1) 
+      .attr("stroke-dasharray", "5,5") 
+      .style("opacity", 0); 
   
     // y-Axis line 
     const lineY = svg.append("line")
       .attr("stroke", "grey")
       .attr("stroke-width", 1)
-      .attr("stroke-dasharray", "5,5") // Optional: dashed line style
-      .style("opacity", 0); // Start with opacity 0 (invisible)
+      .attr("stroke-dasharray", "5,5") 
+      .style("opacity", 0); 
 
     // Current x-value
     const xAxisLabel = svg.append("text")
@@ -172,7 +171,7 @@ d3.csv("gapminder.csv").then(function(dataset) {
       .attr("text-anchor", "middle")
       .attr("fill", "black")
       .style("font-size", "12px")
-      .style("opacity", 0); // Start hidden
+      .style("opacity", 0); 
   
     // Current y-value
     const yAxisLabel = svg.append("text")
@@ -180,20 +179,14 @@ d3.csv("gapminder.csv").then(function(dataset) {
       .attr("text-anchor", "end")
       .attr("fill", "black")
       .style("font-size", "12px")
-      .style("opacity", 0); // Start hidden
-    
-    dataset.forEach(d => {
-        if (!d["Population"] || isNaN(parsePopulation(d["Population"]))) {
-            console.warn(`Missing or invalid Population for country: ${d[paramCountry]}`);
-        }
-    });
+      .style("opacity", 0); 
 
     // Sort dataset for bubble overlapping
     // Source: https://observablehq.com/@d3/d3-ascending
     dataset.sort((a, b) => parsePopulation(b["Population"]) - parsePopulation(a["Population"]));
     console.log("Sorted dataset:", dataset);
 
-    // Circles
+    // Circles representing countries 
     svg.selectAll("circle")
       .data(dataset)
       .enter()
@@ -204,13 +197,23 @@ d3.csv("gapminder.csv").then(function(dataset) {
       .attr("r", d => Math.floor(Math.sqrt(scaleBubble(parsePopulation(d["Population"])) / Math.PI)))
       .attr('stroke', 'black')
       .attr("fill-opacity", 0.75)
-      .attr('fill', '#69a3b2')
+      .attr('fill', d => colorScale(d["world_4region"]))
       .on("click", handleClick)
       .on("mouseover", handleHover)
       .on("mouseout", handleOut);
 
+    // Circle description - can get in the way of the hover effect
+    const description = svg.append("text")
+      .attr("class", "description")
+      .attr("text-anchor", "middle")
+      .attr("fill", "black")
+      .style("font-size", "16px") 
+      .style("background", "white")
+      .style("font-weight", "bold") 
+      .style("opacity", 0); 
+
   }, function(reason) {
-    console.log(reason); // Error! In many browsers, press F12 to see the console
+    console.log(reason);
     d3.select("body")
     .append("p")
     .text("Could not load data set. See console for more information.");
